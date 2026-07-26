@@ -1,18 +1,13 @@
 'use strict';
 
-const fs = require('fs');
-const path = require('path');
+const Trip = require('../models/travel');
 
 module.exports.index = (req, res) => {
-  const tripsFile = path.join(__dirname, '..', 'data', 'trips.json');
-
-  fs.readFile(tripsFile, 'utf8', (err, data) => {
-    if (err) {
-      console.log(err);
+  Trip.find({})
+    .then((trips) => {
+      res.render('travel', { title: 'Travel', trips: trips });
+    })
+    .catch((err) => {
       return res.status(500).render('error', { message: 'Unable to load trips', error: err });
-    }
-
-    const trips = JSON.parse(data);
-    res.render('travel', { title: 'Travel', trips: trips });
-  });
+    });
 };
