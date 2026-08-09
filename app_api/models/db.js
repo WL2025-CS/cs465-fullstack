@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const dbURI = 'mongodb+srv://iveyweilin_db_user:dLXcv4WF6Q7v9p21@cluster0.ex6rxwj.mongodb.net/travlr?retryWrites=true&w=majority&appName=Cluster0';
+const dbURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/travlr';
 
 mongoose.connect(dbURI);
 require('./travel');
