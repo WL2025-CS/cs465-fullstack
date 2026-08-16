@@ -3,6 +3,7 @@ const dbURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/travlr';
 
 mongoose.connect(dbURI);
 require('./travel');
+require('./users');
 
 mongoose.connection.on('connected', () => {
   console.log(`Mongoose connected to ${dbURI}`);
