@@ -13,6 +13,7 @@ const register = async (req, res) => {
   const user = new User();
   user.name = name;
   user.email = email;
+  user.role = 'user'; 
   user.setPassword(password);
 
   try {

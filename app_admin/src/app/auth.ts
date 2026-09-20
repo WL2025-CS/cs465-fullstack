@@ -40,6 +40,21 @@ export class Auth {
     return !!this.getToken();
   }
 
+  getRole(): string | null {
+    const token = this.getToken();
+    if (!token) return null;
+    try {
+      const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+      return JSON.parse(atob(payload)).role ?? null;
+    } catch {
+      return null;
+    }
+  }
+
+  isAdmin(): boolean {
+    return this.getRole() === 'admin';
+  }
+
   logout(): void {
     localStorage.removeItem(this.tokenKey);
     this.router.navigate(['/login']);

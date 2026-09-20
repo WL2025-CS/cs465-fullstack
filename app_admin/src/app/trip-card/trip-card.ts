@@ -10,6 +10,7 @@ import { Trip } from '../trip-data';
 })
 export class TripCard {
   @Input() trip!: Trip;
+  @Input() canEdit = false;
   @Output() editTrip = new EventEmitter<Trip>();
   @Output() deleteTrip = new EventEmitter<string>();
 

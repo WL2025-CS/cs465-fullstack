@@ -6,7 +6,7 @@ require('./travel');
 require('./users');
 
 mongoose.connection.on('connected', () => {
-  console.log(`Mongoose connected to ${dbURI}`);
+  console.log('Mongoose connected');
 });
 mongoose.connection.on('error', (err) => {
   console.log('Mongoose connection error: ', err);
