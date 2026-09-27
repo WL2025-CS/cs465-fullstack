@@ -5,7 +5,8 @@
   "scripts": {
     "start": "node ./bin/www",
     "test": "node --test",
-    "create-admin": "node app_api/scripts/create-admin.js"
+    "create-admin": "node app_api/scripts/create-admin.js",
+    "migrate-prices": "node app_api/scripts/migrate-prices.js"
   },
   "dependencies": {
     "cookie-parser": "~1.4.4",
