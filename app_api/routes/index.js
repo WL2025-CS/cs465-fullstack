@@ -5,18 +5,20 @@ const authController = require('../controllers/authentication');
 const authenticate = require('../middleware/auth');
 const authorize = require('../middleware/authorize');
 const validate = require('../middleware/validate');
-const { tripSchema, registerSchema, loginSchema } = require('../validation/schemas');
+const { tripSchema, registerSchema, loginSchema, tripQuerySchema } = require('../validation/schemas');
 
-// authenticate -> authorize (role) -> validate (schema) -> controller
 const adminOnly = [authenticate, authorize('admin')];
 const validTrip = validate(tripSchema, { unknown: 'strip' });
+const validTripQuery = validate(tripQuerySchema, { source: 'query' });
 
 router.post('/register', validate(registerSchema), authController.register);
 router.post('/login', validate(loginSchema), authController.login);
 
+router.get('/resorts', tripsController.resortsList);
+
 router
   .route('/trips')
-  .get(tripsController.tripsList)
+  .get(validTripQuery, tripsController.tripsList)
   .post(...adminOnly, validTrip, tripsController.tripsAddTrip);
 
 router

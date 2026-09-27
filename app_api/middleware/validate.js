@@ -1,6 +1,6 @@
-module.exports = function validate(schema, { unknown = 'reject' } = {}) {
+module.exports = function validate(schema, { unknown = 'reject', source = 'body' } = {}) {
   return function (req, res, next) {
-    const { value, error } = schema.validate(req.body, {
+    const { value, error } = schema.validate(req[source], {
       abortEarly: false,
       stripUnknown: unknown === 'strip'
     });
@@ -12,7 +12,11 @@ module.exports = function validate(schema, { unknown = 'reject' } = {}) {
       });
     }
 
-    req.body = value;
+    if (source === 'query') {
+      req.validatedQuery = value;
+    } else {
+      req.body = value;
+    }
     return next();
   };
 };

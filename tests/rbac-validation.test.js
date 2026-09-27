@@ -11,7 +11,8 @@ const path = require('path');
 const Trip = require('../app_api/models/travel');
 const User = require('../app_api/models/users');
 
-Trip.find = async () => [];
+Trip.find = () => ({ sort() { return this; }, skip() { return this; }, limit() { return this; }, lean: async () => [] });
+Trip.countDocuments = async () => 0;
 Trip.findOne = async (q) => ({ code: q.code });
 Trip.create = async (data) => ({ ...data });
 Trip.findOneAndUpdate = async (q, data) => ({ ...data });

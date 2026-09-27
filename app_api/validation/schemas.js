@@ -25,4 +25,24 @@ const loginSchema = Joi.object({
   password: Joi.string().max(128).required()
 }).required();
 
-module.exports = { tripSchema, registerSchema, loginSchema };
+const tripQuerySchema = Joi.object({
+  resort: Joi.string().trim().max(100),
+  minPrice: Joi.number().min(0).max(9999999.99),
+  maxPrice: Joi.number().min(0).max(9999999.99),
+  startFrom: Joi.date().iso(),
+  startTo: Joi.date().iso(),
+  sortBy: Joi.string().valid('start', 'price', 'name', 'resort').default('start'),
+  order: Joi.string().valid('asc', 'desc').default('asc'),
+  page: Joi.number().integer().min(1).max(10000).default(1),
+  limit: Joi.number().integer().min(1).max(50).default(10)
+}).custom((value, helpers) => {
+  if (value.minPrice !== undefined && value.maxPrice !== undefined && value.minPrice > value.maxPrice) {
+    return helpers.message('"minPrice" must be less than or equal to "maxPrice"');
+  }
+  if (value.startFrom && value.startTo && value.startFrom > value.startTo) {
+    return helpers.message('"startFrom" must be on or before "startTo"');
+  }
+  return value;
+});
+
+module.exports = { tripSchema, registerSchema, loginSchema, tripQuerySchema };

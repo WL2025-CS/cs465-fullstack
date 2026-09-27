@@ -1,10 +1,26 @@
 const mongoose = require('mongoose');
 const Trip = mongoose.model('trips');
+const { buildTripQuery, pageInfo } = require('../utils/tripQuery');
 
 const tripsList = async (req, res) => {
   try {
-    const trips = await Trip.find({});
-    return res.status(200).json(trips);
+    const { filter, sort, skip, limit, page } = buildTripQuery(req.validatedQuery);
+
+    const [trips, total] = await Promise.all([
+      Trip.find(filter).sort(sort).skip(skip).limit(limit).lean(),
+      Trip.countDocuments(filter)
+    ]);
+
+    return res.status(200).json({ data: trips, ...pageInfo(total, page, limit) });
+  } catch (err) {
+    return res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
+
+const resortsList = async (req, res) => {
+  try {
+    const resorts = await Trip.distinct('resort');
+    return res.status(200).json(resorts.sort((a, b) => a.localeCompare(b)));
   } catch (err) {
     return res.status(500).json({ message: 'Server error', error: err.message });
   }
@@ -31,6 +47,7 @@ const tripsAddTrip = async (req, res) => {
       start: req.body.start,
       resort: req.body.resort,
       perPerson: req.body.perPerson,
+      pricePerPerson: Number(req.body.perPerson),
       image: req.body.image,
       description: req.body.description
     });
@@ -42,6 +59,7 @@ const tripsAddTrip = async (req, res) => {
 
 const tripsUpdateTrip = async (req, res) => {
   try {
+    
     const updatedTrip = await Trip.findOneAndUpdate(
       { code: req.params.tripCode },
       {
@@ -51,6 +69,7 @@ const tripsUpdateTrip = async (req, res) => {
         start: req.body.start,
         resort: req.body.resort,
         perPerson: req.body.perPerson,
+        pricePerPerson: Number(req.body.perPerson),
         image: req.body.image,
         description: req.body.description
       },
@@ -79,6 +98,7 @@ const tripsDeleteTrip = async (req, res) => {
 
 module.exports = {
   tripsList,
+  resortsList,
   tripsFindByCode,
   tripsAddTrip,
   tripsUpdateTrip,
