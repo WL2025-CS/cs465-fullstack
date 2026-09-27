@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TripCard } from '../trip-card/trip-card';
 import { HttpErrorResponse } from '@angular/common/http';
-import { TripData, Trip } from '../trip-data';
+import { TripData, Trip, TripSearch } from '../trip-data';
 import { Auth } from '../auth';
 
 @Component({
@@ -18,6 +18,13 @@ export class TripListing implements OnInit {
   isAdding = false;
   errorMessage = '';
 
+  resorts: string[] = [];
+  search: TripSearch = { resort: '', minPrice: null, maxPrice: null, startFrom: '', startTo: '', sortBy: 'start', order: 'asc', page: 1, limit: 5 };
+  total = 0;
+  totalPages = 1;
+  hasPrev = false;
+  hasNext = false;
+
   emptyTrip: Trip = {
     code: '', name: '', length: '', start: '', resort: '', perPerson: '', image: '', description: ''
   };
@@ -30,7 +37,6 @@ export class TripListing implements OnInit {
     return this.authService.isAdmin();
   }
 
-  // Turns the API's 401/403/422 responses into a message the admin can act on.
   private showError(action: string, err: HttpErrorResponse): void {
     console.error(`Error ${action}:`, err);
     if (err.status === 403) {
@@ -46,14 +52,51 @@ export class TripListing implements OnInit {
   }
 
   ngOnInit(): void {
+    this.loadResorts();
     this.loadTrips();
   }
 
+  loadResorts(): void {
+    this.tripDataService.getResorts().subscribe({
+      next: (resorts) => { this.resorts = resorts; this.cdr.markForCheck(); },
+      error: (err) => this.showError('loading resorts', err)
+    });
+  }
+
   loadTrips(): void {
-    this.tripDataService.getTrips().subscribe({
-      next: (trips) => { this.trips = trips; this.cdr.markForCheck(); },
+    this.tripDataService.searchTrips(this.search).subscribe({
+      next: (page) => {
+        this.trips = page.data;
+        this.total = page.total;
+        this.totalPages = page.totalPages;
+        this.hasPrev = page.hasPrev;
+        this.hasNext = page.hasNext;
+        
+        if (page.data.length === 0 && page.page > 1) {
+          this.goToPage(page.page - 1);
+          return;
+        }
+        this.cdr.markForCheck();
+      },
       error: (err) => this.showError('loading trips', err)
     });
+  }
+
+  applySearch(): void {
+    this.errorMessage = '';
+    this.search.page = 1;
+    this.loadTrips();
+  }
+
+  clearSearch(): void {
+    this.search = { ...this.search, resort: '', minPrice: null, maxPrice: null, startFrom: '', startTo: '', sortBy: 'start', order: 'asc' };
+    this.applySearch();
+  }
+
+  goToPage(page: number): void {
+    if (page < 1 || page > this.totalPages) return;
+    this.search.page = page;
+    this.loadTrips();
   }
 
   startAdd(): void {
@@ -80,12 +123,12 @@ export class TripListing implements OnInit {
     this.errorMessage = '';
     if (this.isAdding) {
       this.tripDataService.addTrip(this.formModel).subscribe({
-        next: () => { this.loadTrips(); this.cancelForm(); },
+        next: () => { this.loadResorts(); this.loadTrips(); this.cancelForm(); },
         error: (err) => this.showError('adding the trip', err)
       });
     } else if (this.editingTrip) {
       this.tripDataService.updateTrip(this.formModel).subscribe({
-        next: () => { this.loadTrips(); this.cancelForm(); },
+        next: () => { this.loadResorts(); this.loadTrips(); this.cancelForm(); },
         error: (err) => this.showError('updating the trip', err)
       });
     }
@@ -94,7 +137,7 @@ export class TripListing implements OnInit {
   onDeleteTrip(tripCode: string): void {
     if (!confirm('Are you sure you want to delete this trip?')) return;
     this.tripDataService.deleteTrip(tripCode).subscribe({
-      next: () => { this.errorMessage = ''; this.loadTrips(); },
+      next: () => { this.errorMessage = ''; this.loadResorts(); this.loadTrips(); },
       error: (err) => this.showError('deleting the trip', err)
     });
   }

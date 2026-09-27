@@ -1,6 +1,5 @@
-
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 export interface Trip {
@@ -15,6 +14,28 @@ export interface Trip {
   description: string;
 }
 
+export interface TripSearch {
+  resort?: string;
+  minPrice?: number | null;
+  maxPrice?: number | null;
+  startFrom?: string;
+  startTo?: string;
+  sortBy?: 'start' | 'price' | 'name' | 'resort';
+  order?: 'asc' | 'desc';
+  page?: number;
+  limit?: number;
+}
+
+export interface TripPage {
+  data: Trip[];
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasPrev: boolean;
+  hasNext: boolean;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -23,8 +44,18 @@ export class TripData {
 
   constructor(private http: HttpClient) {}
 
-  getTrips(): Observable<Trip[]> {
-    return this.http.get<Trip[]>(this.baseUrl);
+  searchTrips(search: TripSearch = {}): Observable<TripPage> {
+    let params = new HttpParams();
+    for (const [key, value] of Object.entries(search)) {
+      if (value !== undefined && value !== null && value !== '') {
+        params = params.set(key, String(value));
+      }
+    }
+    return this.http.get<TripPage>(this.baseUrl, { params });
+  }
+
+  getResorts(): Observable<string[]> {
+    return this.http.get<string[]>('http://localhost:3000/api/resorts');
   }
 
   getTrip(tripCode: string): Observable<Trip> {
