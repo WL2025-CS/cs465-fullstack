@@ -10,12 +10,15 @@ const path = require('path');
 
 const Trip = require('../app_api/models/travel');
 const User = require('../app_api/models/users');
+const Booking = require('../app_api/models/bookings');
+Booking.countDocuments = async () => 0;
 
 Trip.find = async () => [];
 Trip.findOne = async (q) => ({ code: q.code });
 Trip.create = async (data) => ({ ...data });
 Trip.findOneAndUpdate = async (q, data) => ({ ...data });
 Trip.findOneAndDelete = async (q) => ({ code: q.code });
+Trip.deleteOne = async () => ({ deletedCount: 1 });
 User.prototype.save = async function () { return this; };
 
 const authorize = require('../app_api/middleware/authorize');
